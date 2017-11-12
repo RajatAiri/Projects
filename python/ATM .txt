@@ -1,0 +1,652 @@
+#import statements
+import sys
+import tkinter
+import sqlite3
+from tkinter import *
+from tkinter import messagebox
+import requests
+#import beautifulsoup4
+import urllib.request
+import http.cookiejar
+from getpass import getpass
+import os
+from stat import *
+#import way2sms
+
+#creating and connecting to database
+conn = sqlite3.connect("bank.db")
+#using cursor object
+curs = conn.cursor()
+#creating table in database
+stmt = "create table acc(uid int NOT NULL PRIMARY KEY,uname varchar(20),uphno int(10),uaccno int,upass varchar(20),balance int)"
+#curs.execute(stmt)
+
+stmt2 = "select * from acc"
+curs.execute(stmt2)
+for i in curs.fetchall():
+    print(i)
+    
+global uphon
+
+#function for exiting from the system   
+def exit(tp3):
+    tp3.destroy()#destroying frame which called this
+    top.destroy()#destroying main frame
+
+#function for performing transaction
+def transac(tr,id1):
+    acno = tkinter.e1.get()#getting account number
+    amt = tkinter.e2.get()#getting balance
+    conn=sqlite3.connect("bank.db")#connecting to the database 
+    smt=conn.cursor()
+    
+    #query for updating balance after transaction for the person whose account is debited
+    query1="update acc set balance=balance -"+amt+" where uid="+id1+""
+    smt.execute(query1)
+    
+    #query for updating balance after transaction for the person whose account is credited
+    query2="update acc set balance=balance +"+amt+" where uaccno="+acno+""
+    smt.execute(query2)
+    
+    conn.commit()#saving the changes
+    s = "select * from acc where uid = "+id1+""
+    smt.execute(s)
+    for (uid,uname,uphno,uaccno,upass,balance)  in smt:
+         uphon = str(uphno)
+    
+    def msg():
+        messagebox.showinfo("Done","Transaction Succsessfull!!")#showing message 
+        
+        message = "Your have made a fund transfer for rupees "+amt+" into account number "+acno+"" #message to be sent on mobile
+        number = ""+uphon+"" #number at which message is sent
+
+        if __name__ == "__main__":    
+            username = "9911910678"
+            passwd = "sahebrajat1996"
+
+        message = "+".join(message.split(' '))
+        number = "+".join(number.split(' '))
+
+
+         #logging into the sms site
+        url ='http://site24.way2sms.com/Login1.action?'
+        data = 'username='+username+'&password='+passwd+'&Submit=Sign+in'
+        data1= data.encode()
+         #For cookies
+
+        cj= http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+         #Adding header details
+        opener.addheaders=[('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120')]
+        try:
+            usock =opener.open(url, data1)
+        except IOError:
+            print ("error")
+                #return()
+
+        jession_id =str(cj).split('~')[1].split(' ')[0]
+        send_sms_url = 'http://site24.way2sms.com/smstoss.action?'
+        send_sms_data = 'ssaction=ss&Token='+jession_id+'&mobile='+number+'&message='+message+'&msgLen=136'
+        data3= send_sms_data.encode()
+        opener.addheaders=[('Referer', 'http://site25.way2sms.com/sendSMS?Token='+jession_id)]
+        try:
+            sms_sent_page = opener.open(send_sms_url,data3)
+        except IOError:
+            print ("error")
+            #return()
+
+        print ("success")
+   
+    msg()
+    tr.destroy()#destroying frame
+    
+
+#deposit function
+def depo(w,id1):
+    amt = tkinter.e1.get()#getting amount to be deposited
+    conn=sqlite3.connect("bank.db")#connecting to the database
+    smt=conn.cursor()
+    #updating the balance
+    query="update acc set balance=balance +"+amt+" where uid="+id1+""
+    smt.execute(query)
+    conn.commit()#saving changes
+    s = "select * from acc where uid = "+id1+""
+    smt.execute(s)
+    for (uid,uname,uphno,uaccno,upass,balance)  in smt:
+        uphon = str(uphno)
+    def msg():
+        messagebox.showinfo("Done","Succsessfull!!")#showing message
+        
+        message = "Your account is deposited with rupees "+amt+"" #message to be sent on mobile
+        number = ""+uphon+"" #number at which message is sent
+
+
+        if __name__ == "__main__":    
+            username = "9911910678"
+            passwd = "sahebrajat1996"
+
+        message = "+".join(message.split(' '))
+        number = "+".join(number.split(' '))
+
+         #logging into the sms site
+        url ='http://site24.way2sms.com/Login1.action?'
+        data = 'username='+username+'&password='+passwd+'&Submit=Sign+in'
+        data1= data.encode()
+         #For cookies
+
+        cj= http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+         #Adding header details
+        opener.addheaders=[('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120')]
+        try:
+            usock =opener.open(url, data1)
+        except IOError:
+            print ("error")
+                #return()
+
+        jession_id =str(cj).split('~')[1].split(' ')[0]
+        send_sms_url = 'http://site24.way2sms.com/smstoss.action?'
+        send_sms_data = 'ssaction=ss&Token='+jession_id+'&mobile='+number+'&message='+message+'&msgLen=136'
+        data3= send_sms_data.encode()
+        opener.addheaders=[('Referer', 'http://site25.way2sms.com/sendSMS?Token='+jession_id)]
+        try:
+            sms_sent_page = opener.open(send_sms_url,data3)
+        except IOError:
+            print ("error")
+            #return()
+
+        print ("success")
+    msg()
+    w.destroy()#destroying frame
+    
+#function called to complete withdraw
+def wi(w,id1):
+    global uphon
+    amt = tkinter.e1.get()
+    conn=sqlite3.connect("bank.db")#connecting to database
+    smt=conn.cursor()
+    #updating balance after withdrwal
+    query="update acc set balance=balance -"+amt+" where uid="+id1+""
+    smt.execute(query)
+    conn.commit()#saving changes
+    s = "select * from acc where uid = "+id1+""
+    smt.execute(s)
+    for (uid,uname,uphno,uaccno,upass,balance)  in smt:
+        uphon = str(uphno)
+    def msg():
+        messagebox.showinfo("Done","Collect Cash!!")#showing message
+        global uphon
+        message = "Your account is withdrawn for rupees "+amt+"" #message to be sent on mobile
+        number = ""+uphon+"" #number at which message is sent
+
+        if __name__ == "__main__":    
+            username = "9911910678"
+            passwd = "sahebrajat1996"
+
+        message = "+".join(message.split(' '))
+        number = "+".join(number.split(' '))
+
+        
+
+         #logging into the sms site
+        url ='http://site24.way2sms.com/Login1.action?'
+        data = 'username='+username+'&password='+passwd+'&Submit=Sign+in'
+        data1= data.encode()
+         #For cookies
+
+        cj= http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+         #Adding header details
+        opener.addheaders=[('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120')]
+        try:
+            usock =opener.open(url, data1)
+        except IOError:
+            print ("error")
+                #return()
+
+        jession_id =str(cj).split('~')[1].split(' ')[0]
+        send_sms_url = 'http://site24.way2sms.com/smstoss.action?'
+        send_sms_data = 'ssaction=ss&Token='+jession_id+'&mobile='+number+'&message='+message+'&msgLen=136'
+        data3= send_sms_data.encode()
+        opener.addheaders=[('Referer', 'http://site25.way2sms.com/sendSMS?Token='+jession_id)]
+        try:
+            sms_sent_page = opener.open(send_sms_url,data3)
+        except IOError:
+            print ("error")
+            #return()
+
+        print ("success") 
+        
+        
+    msg()
+    w.destroy()#destroying frame
+    
+
+#function for fund transfer
+def trans(id1):
+    tr=tkinter.Tk()
+    tr.title("Transfer")
+    trfr=Frame(tr)#creating frame
+
+    tkinter.l1=Label(trfr,text="Enter AccountNo")#label for account no.
+    tkinter.l1.grid(row=0, sticky=E)
+    
+    tkinter.l2=Label(trfr,text="Enter Ammount")#label for amount to be transfered
+    tkinter.l2.grid(row=1, sticky=E)
+    
+    tkinter.e1 = Entry(trfr)#field for entering account number
+    tkinter.e1.grid(row=0, column=1)
+    
+    tkinter.e2 = Entry(trfr)#field for entering amount
+    tkinter.e2.grid(row=1, column=1)
+    
+    #button to tranfer amount
+    tkinter.tb=Button(trfr,text="OK",command=lambda:transac(tr,id1))#calling transac function to perform transaction
+    tkinter.tb.grid(columnspan=2)
+    trfr.pack()#packing into frame
+    tr.mainloop()
+
+#function for balance enquiry
+def bal(id1):
+    conn=sqlite3.connect("bank.db")#connecting to database
+    smt=conn.cursor()
+    #getting row here user id matches
+    s = "select * from acc where uid = "+id1+""
+    smt.execute(s)
+    for (uid,uname,uphno,uaccno,upass,balance)  in smt:
+        bala=str(balance)
+        uphon = str(uphno)
+    def msg():
+        messagebox.showinfo("Balance","Available balance"+str(bala))#message showing balance
+        
+        message = "Your current account balance is rupees "+bala+"" #message to be sent on mobile
+        number = ""+uphon+"" #number at which message is sent
+
+        if __name__ == "__main__":    
+            username = "9911910678"
+            passwd = "sahebrajat1996"
+
+        message = "+".join(message.split(' '))
+        number = "+".join(number.split(' '))
+
+
+         #logging into the sms site
+        url ='http://site24.way2sms.com/Login1.action?'
+        data = 'username='+username+'&password='+passwd+'&Submit=Sign+in'
+        data1= data.encode()
+         #For cookies
+
+        cj= http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+         #Adding header details
+        opener.addheaders=[('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120')]
+        try:
+            usock =opener.open(url, data1)
+        except IOError:
+            print ("error")
+                #return()
+
+        jession_id =str(cj).split('~')[1].split(' ')[0]
+        send_sms_url = 'http://site24.way2sms.com/smstoss.action?'
+        send_sms_data = 'ssaction=ss&Token='+jession_id+'&mobile='+number+'&message='+message+'&msgLen=136'
+        data3= send_sms_data.encode()
+        opener.addheaders=[('Referer', 'http://site25.way2sms.com/sendSMS?Token='+jession_id)]
+        try:
+            sms_sent_page = opener.open(send_sms_url,data3)
+        except IOError:
+            print ("error")
+            #return()
+
+        print ("success")
+    msg()
+    
+#function for depositing amount
+def deposit(id1):
+    de=tkinter.Tk()
+    de.title("Withdraw")
+    df=Frame(de)#creating frame
+
+    tkinter.l1=Label(df,text="Enter Amount")#label-enter amount
+    tkinter.l1.grid(row=0, sticky=E)
+    
+    tkinter.e1 = Entry(df)#entry field for deposit amount
+    tkinter.e1.grid(row=0, column=1)
+    
+    #button to complete deposit
+    tkinter.deb=Button(df,text="OK",command=lambda:depo(de,id1))#calling depo function to complete deposit process
+    tkinter.deb.grid(columnspan=2)
+
+    df.pack()#packing in frame
+    de.mainloop()
+    
+#function to withdraw 
+def withdraw(id1):
+    w=tkinter.Tk()
+    w.title("Withdraw")
+    wf=Frame(w)#creating frame
+
+    tkinter.l1=Label(wf,text="Enter Amount")#label enter amount
+    tkinter.l1.grid(row=0, sticky=E)
+    
+    tkinter.e1 = Entry(wf)#entry field for amount to be withdrawn
+    tkinter.e1.grid(row=0, column=1)
+    
+    #button to complete process
+    tkinter.wb=Button(wf,text="OK",command=lambda:wi(w,id1))#calling wi function to complete withdrawal
+    tkinter.wb.grid(columnspan=2)
+
+    wf.pack()#packing in frame
+    w.mainloop()
+    
+#function for different banking features
+def banking(id1):
+    banki=tkinter.Tk()
+    banki.title("ATM machine")
+    bankiframe=Frame(banki)#creating frame
+    
+    #withdraw button
+    tkinter.b1=Button(bankiframe,text=" WITHDRAW ",command=lambda:withdraw(id1))
+    tkinter.b1.grid(row=0,column=1, padx=10, pady=10)
+    
+    #deposit button
+    tkinter.b2=Button(bankiframe,text=" DEPOSIT ",command=lambda:deposit(id1))
+    tkinter.b2.grid(row=1,column=1, padx=10, pady=10)
+    
+    #fund transfer button
+    tkinter.b4=Button(bankiframe,text="  FUND TRANSFER  ",command=lambda:trans(id1))
+    tkinter.b4.grid(row=2,column=1, padx=10, pady=10)
+    
+    #balance enquiry button
+    tkinter.b3=Button(bankiframe,text="  BALANCE ENQUIRY  ",command=lambda:bal(id1))
+    tkinter.b3.grid(row=3,column=1, padx=10, pady=10)
+
+    bankiframe.pack()#packing in frame
+    banki.mainloop()
+
+
+
+#function for saving the changes made during edit
+def savechanges(ed,id1):
+
+    id2 = str(id1)
+    e2 = tkinter.e_2.get()
+    e3 = tkinter.e_3.get()
+    conn=sqlite3.connect("bank.db")#connecting to database
+    smt=conn.cursor()
+    
+    #saving changes in database
+    query="update acc set uname=('"+e2+"'),uphno="+e3+" where uid="+id2+""
+    smt.execute(query)
+    
+    conn.commit()#saving changes
+    def msg():
+        messagebox.showinfo("Done","Saved Changes!!!")#showing messages
+
+    msg()
+    ed.destroy()#destroying frame
+
+
+#function for editing the profile
+def edit(prof,uid):
+    prof.destroy()
+    ed=tkinter.Tk()
+    ed.title("Profile Changes")
+
+    edframe=Frame(ed)#creating frame
+
+    tkinter.ll2=Label(edframe,text="NAME:")#label Name
+    tkinter.ll2.grid(row=0, sticky=E)
+    
+    tkinter.ll3=Label(edframe,text="PHONENO:")#label phone no
+    tkinter.ll3.grid(row=1, sticky=E)
+
+    
+    tkinter.e_2 = Entry(edframe)#entry field foe name
+    tkinter.e_2.grid(row=0, column=1)
+    
+    tkinter.e_3 = Entry(edframe)#entry field for phone no
+    tkinter.e_3.grid(row=1, column=1)
+
+    id1=uid
+    #button to save
+    tkinter.edb=Button(edframe,text="Save",command=lambda:savechanges(ed,id1))#calling savechanges function
+    tkinter.edb.grid(columnspan=2)
+
+
+    edframe.pack()#packing in frame
+    ed.mainloop()
+
+
+
+#function for showing details of the user
+def details(uid,uname,uphno,uaccno,upass,balance):
+    prof=tkinter.Tk()
+    prof.title("Profile")
+    prof.configure(background='white')
+    
+    profframe=Frame(prof)#creatin frame
+    
+    tkinter.ll1=Label(profframe,text="ID:",fg="black",bg="white")#label id
+    tkinter.ll1.grid(row=0, sticky=E)
+    
+    tkinter.ll2=Label(profframe,text="NAME:",fg="black",bg="white")#label name
+    tkinter.ll2.grid(row=1, sticky=E)
+
+    
+    tkinter.ll3=Label(profframe,text="PHONENO:",fg="black",bg="white")#label phone no
+    tkinter.ll3.grid(row=2, sticky=E)
+
+    
+    tkinter.ll4=Label(profframe,text="ACCOUNT:",fg="black",bg="white")#label account
+    tkinter.ll4.grid(row=3, sticky=E)
+
+    
+    tkinter.ll5=Label(profframe,text="BALANCE:",fg="black",bg="white")#label balance
+    tkinter.ll5.grid(row=4, sticky=E)
+
+    
+    tkinter.l1=Label(profframe,text=uid,fg="black",bg="white")
+    tkinter.l1.grid(row=0, column=1)
+    
+    tkinter.l2=Label(profframe,text=uname,fg="black",bg="white")
+    tkinter.l2.grid(row=1, column=1)
+    
+    tkinter.l3=Label(profframe,text=uphno,fg="black",bg="white")
+    tkinter.l3.grid(row=2, column=1)
+
+    
+    tkinter.l4=Label(profframe,text=uaccno,fg="black",bg="white")
+    tkinter.l4.grid(row=3, column=1)
+
+    
+    tkinter.l5=Label(profframe,text=balance,fg="black",bg="white")
+    tkinter.l5.grid(row=4, column=1)
+    
+    #edit button
+    tkinter.profb=Button(profframe,text="EDIT",command=lambda:edit(prof,uid))
+    tkinter.profb.grid(columnspan=2)
+    
+    profframe.pack()#packing in frame
+    prof.mainloop()
+
+
+
+#function for showing profile
+def profile(id1):
+
+    conn=sqlite3.connect("bank.db")#connecting to database
+    smt=conn.cursor()
+    s = "select * from acc where uid = "+id1+""
+    smt.execute(s)
+    
+    for (uid,uname,uphno,uaccno,upass,balance)  in smt:
+        details(uid,uname,uphno,uaccno,upass,balance)#calling details function
+
+#function that implements create user function
+def createquery(create):
+
+    e1 = tkinter.entry_1.get()
+    e2 = tkinter.entry_2.get()
+    e3 = tkinter.entry_3.get()
+    e4 = tkinter.entry_4.get()
+    e5 = tkinter.entry_5.get()
+    e6 = tkinter.entry_6.get()
+
+    conn=sqlite3.connect("bank.db")#connecting to database
+    smt=conn.cursor()
+    query="insert into acc values('"+e1+"','"+e2+"','"+e3+"','"+e4+"','"+e5+"',"+e6+")"
+    smt.execute(query)
+    conn.commit()
+    def msg():
+        messagebox.showinfo("Done","Succsessfully created!!!")
+
+    msg()
+    create.destroy()
+
+
+#function for creating a user profile
+def createuser():
+    
+    create=tkinter.Tk()
+    create.title("New User")
+    createframe=Frame(create)
+    
+    tkinter.label_1 = Label(createframe, text="ID")#label id
+    tkinter.label_1.grid(row=0, sticky=E)
+    
+    tkinter.label_2 = Label(createframe, text="NAME")#label name
+    tkinter.label_2.grid(row=1, sticky=E)
+    
+    tkinter.label_3 = Label(createframe, text="PHONE NO.")#label phone
+    tkinter.label_3.grid(row=2, sticky=E)
+
+    
+    tkinter.label_4 = Label(createframe, text="ACCOUNT NO.")#label account no
+    tkinter.label_4.grid(row=3, sticky=E)
+
+    tkinter.label_5 = Label(createframe, text="PASSWORD")#label password
+    tkinter.label_5.grid(row=4, sticky=E)
+
+    
+    tkinter.label_6 = Label(createframe, text="BALANCE")#label balance
+    tkinter.label_6.grid(row=5, sticky=E)
+
+    
+    tkinter.entry_1 = Entry(createframe)#entry for id
+    tkinter.entry_1.grid(row=0, column=1)
+
+    
+    tkinter.entry_2 = Entry(createframe)#entry for name
+    tkinter.entry_2.grid(row=1, column=1)
+
+    
+    tkinter.entry_3 = Entry(createframe)#entry for phone no
+    tkinter.entry_3.grid(row=2, column=1)
+
+    
+    tkinter.entry_4 = Entry(createframe)#entry for accont no
+    tkinter.entry_4.grid(row=3, column=1)
+
+    
+    tkinter.entry_5 = Entry(createframe)#entry for password
+    tkinter.entry_5.grid(row=4, column=1)
+
+    
+    tkinter.entry_6 = Entry(createframe)#entry for balance
+    tkinter.entry_6.grid(row=5, column=1)
+
+    #craete user account button
+    tkinter.logbtn = Button(createframe, text="Create", command= lambda:createquery(create))#calling createquery function
+    tkinter.logbtn.grid(columnspan=2)
+    
+    
+    createframe.pack()#packing in frame
+    create.mainloop()
+
+
+#function for displaying the welcome screen after user has logged in
+def welcome(id1):
+    tp3=tkinter.Tk()
+    tp3.title("Welcome"+id1)
+    frame3=Frame(tp3)#creating frame
+    
+    #profile button
+    tkinter.b1=Button(frame3,text="PROFILE",command=lambda:profile(id1))
+    tkinter.b1.grid(row=0,column=1)
+    
+    #banking button
+    tkinter.b2=Button(frame3,text="BANKING",command=lambda:banking(id1)) 
+    tkinter.b2.grid(row=1,column=1)
+    
+    #exit button
+    tkinter.b3=Button(frame3,text="EXIT",command=lambda:exit(tp3)) 
+    tkinter.b3.grid(row=2,column=1)
+
+    frame3.pack()#packing in frame
+    tp3.mainloop()
+
+#function for checking the password validity
+def chkvalid(tp2):
+        id1 = tkinter.entry_1.get()#getting userid
+        p1= tkinter.entry_2.get()#getiing password
+        
+        conn=sqlite3.connect("bank.db")#connecting to database
+        smt=conn.cursor()
+        
+        #selecting row where id matches
+        s = "select * from acc where uid = "+id1+""
+        smt.execute(s)
+        
+        for (uid,uname,uphno,uaccno,upass,balance) in smt:
+            #checking password
+            if p1 == upass:
+                tp2.destroy()
+                welcome(id1)
+            
+            else:
+                messagebox.showinfo("Failed","Id/Pass wrong!!!")#displaying error
+                
+#function which gives user login screen
+def USER():
+    
+    tp2=tkinter.Tk()
+    tp2.title("User Login")
+    frame2=Frame(tp2,borderwidth=50)
+    
+    #id label
+    tkinter.label_1 = Label(frame2, text="ID")
+    tkinter.label_1.grid(row=0, sticky=E)
+    #password label 
+    tkinter.label_2 = Label(frame2, text="Password")
+    tkinter.label_2.grid(row=1, sticky=E)
+    #entry for id
+    tkinter.entry_1 = Entry(frame2)
+    tkinter.entry_1.grid(row=0, column=1)
+    #entry for password
+    tkinter.entry_2 = Entry(frame2, show="*")
+    tkinter.entry_2.grid(row=1, column=1)
+    #login button
+    tkinter.logbtn = Button(frame2, text="Login", command =lambda:chkvalid(tp2))
+    tkinter.logbtn.grid(columnspan=2)
+
+    frame2.pack()
+    tp2.mainloop()
+    
+
+#first window
+top=tkinter.Tk()
+top.title(" ATM ABC bank")
+frame=Frame(top,width=300,height=40)
+
+
+#user button
+tkinter.b=Button(top,text="USER",command=USER).pack()
+#Create Account button
+tkinter.cb=Button(top,text="Create account",command=createuser).pack()
+
+frame.pack()
+top.mainloop()
